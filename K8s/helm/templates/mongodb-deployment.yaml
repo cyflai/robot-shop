@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    service: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: mongodb
+  template:
+    metadata:
+      labels:
+        service: mongodb
+    spec:
+      {{ if .Values.psp.enabled }}
+      serviceAccountName: robot-shop
+      {{ end }}
+      # initContainers:
+      # - name: chmod-er
+      #   image: busybox:latest
+      #   command:
+      #   - /bin/chown
+      #   - -R
+      #   - "1000"  # or whatever the mongo UID is, use string "1000" not 1000 due to yaml
+      #   - /data/db
+      #   volumeMounts:
+      #   - name: mongo-data  # or whatever
+      #     mountPath: /data/db
+      containers:
+      - name: mongodb
+        image: docker.io/bitnami/mongodb:4.0.2-debian-9 
+      # {{ .Values.image.repo }}/rs-mongodb:{{ .Values.image.version }}
+        # securityContext:
+        #   runAsUser: 0
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 27017
+        # resources:
+        #   limits:
+        #     cpu: 200m
+        #     memory: 200Mi
+        #   requests:
+        #     cpu: 100m
+        #     memory: 100Mi
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }} 
